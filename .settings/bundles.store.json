@@ -1,0 +1,40 @@
+{
+  "bundles": [
+    {
+      "name": "cmake",
+      "version": "^4.0.1+st.3"
+    },
+    {
+      "name": "ninja",
+      "version": "^1.12.1+st.9"
+    },
+    {
+      "name": "gnu-tools-for-stm32",
+      "version": "^13.3.1+st.8"
+    },
+    {
+      "name": "st-arm-clangd",
+      "version": "^19.1.2+st.3"
+    },
+    {
+      "name": "programmer",
+      "version": "2.19.0+st.1"
+    },
+    {
+      "name": "stlink-gdbserver",
+      "version": "7.10.0+st.3"
+    },
+    {
+      "name": "stlink-server",
+      "version": "2.1.1+st.7"
+    },
+    {
+      "name": "stlink-upgrader",
+      "version": "3.16.8+st.3"
+    },
+    {
+      "name": "gnu-gdb-for-stm32",
+      "version": "13.3.1+st.9"
+    }
+  ]
+}
