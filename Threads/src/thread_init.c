@@ -1,6 +1,11 @@
 #include "thread_init.h"
 #include "nx_stm32_eth_driver.h"
 #include "eth.h"
+#include "thread_socket.h"
+#include "flash_nor.h"
+#include <stdint.h>
+
+
 
 /******************************netxduo define**************************************/
 //ip0 private packet pool
@@ -18,7 +23,7 @@ ULONG    arp_space_area[52*20 / sizeof(ULONG)] __attribute__((section(".NxPoolSe
 #define IP_ADDR0                        192
 #define IP_ADDR1                        168
 #define IP_ADDR2                        0
-#define IP_ADDR3                        200
+#define IP_ADDR3                        233
 ULONG  ip0_address = IP_ADDRESS(IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
 
 //netx thread infomation
@@ -60,9 +65,71 @@ void thread_init(ULONG input)
 
 	}
 
+	// tx thread create
+	thread_socket_create();
+
 	while(1)
 	{
+		
 		sleep_ms(10);
 	}
 }
+
+const volatile uint32_t AppAddr = 0x8080000;
+
+void JumpToApp(void)
+{
+        uint32_t i=0;
+        void (*SysMemAppJump)(void);        /* 声明一个函数指针 */
+        //__IO uint32_t AppAddr = 0x08100000; /* STM32H7的系统BootLoader地址 */
+        
+				//HAL_GPIO_WritePin(PHY_RST_GPIO_Port,PHY_RST_Pin,0);
+
+				//HAL_ETH_DeInit(&heth);
+	
+		HAL_GPIO_WritePin(PHY_RST_GPIO_Port,PHY_RST_Pin,0);
+		HAL_Delay(100);
+		HAL_GPIO_WritePin(PHY_RST_GPIO_Port,PHY_RST_Pin,1);
+		HAL_Delay(100);
+	
+	        /* 关闭全局中断 */
+        DISABLE_INT(); 
+	
+        /* 关闭滴答定时器，复位到默认值 */
+        SysTick->CTRL = 0;
+        SysTick->LOAD = 0;
+        SysTick->VAL = 0;
+	
+        /* 设置所有时钟到默认状态，使用HSI时钟 */
+        HAL_RCC_DeInit();
+
+        /* 关闭所有中断，清除所有中断挂起标志 */
+        for (i = 0; i < 8; i++)
+        {
+                NVIC->ICER[i]=0xFFFFFFFF;
+                NVIC->ICPR[i]=0xFFFFFFFF;
+        }        
+
+        /* 使能全局中断 */
+        ENABLE_INT();
+
+        /* 跳转到APP，首地址是MSP，地址+4是复位中断服务程序地址 */
+        SysMemAppJump = (void (*)(void)) (*((uint32_t *) (AppAddr + 4)));
+
+        /* 设置主堆栈指针 */
+        __set_MSP(*(uint32_t *)AppAddr);
+        
+        /* 在RTOS工程，这条语句很重要，设置为特权级模式，使用MSP指针 */
+        __set_CONTROL(0);
+
+        /* 跳转到APP */
+        SysMemAppJump(); 
+
+        /* 跳转成功的话，不会执行到这里，用户可以在这里添加代码 */
+        while (1)
+        {
+
+        }
+}
+
 

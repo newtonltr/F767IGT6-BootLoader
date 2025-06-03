@@ -39,6 +39,7 @@
 #include "tx_thread.h"
 #include "tx_initialize.h"
 #include "thread_init.h"
+#include "flash_nor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -106,8 +107,28 @@ TX_THREAD thread_init_block;
 uint64_t thread_init_stack[THREAD_INIT_STACK_SIZE/8];
 #define THREAD_INIT_PRIO							28u
 
+/******************************tx kits define**************************************/
+
+// pool
+//little-fs byte pool, 16K Word
+#define LFS_POOL_WSIZE 	(1024*16)
+ULONG lfs_pool_area[LFS_POOL_WSIZE];
+TX_BYTE_POOL lfs_byte_pool;
+
+static void tx_pool_create(void)
+{
+	tx_byte_pool_create(&lfs_byte_pool,"lfs_byte_pool",lfs_pool_area,sizeof(lfs_pool_area));
+
+}
+
+
+
 void  tx_application_define(void *first_unused_memory)
 {
+  norflash_init();
+
+	tx_pool_create();
+
   tx_thread_create(&thread_init_block, 
                   "init", 
                   thread_init, 

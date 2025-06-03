@@ -133,6 +133,7 @@ void sleep_s(uint32_t s);
 void sleep_ms(uint32_t ms);
 void sleep_us(uint32_t us);
 
+extern TX_BYTE_POOL lfs_byte_pool;
 
 /* USER CODE END Private defines */
 
