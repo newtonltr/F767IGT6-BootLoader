@@ -90,7 +90,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/ThirdPartys/NetXDuo/crypto_libraries/ports/cortex-m7/gnu/inc
     ${PROJECT_SOURCE_DIR}/ThirdPartys/NetXDuo/crypto_libraries/inc
     ${PROJECT_SOURCE_DIR}/ThirdPartys/NetXDuo/user
-    ${PROJECT_SOURCE_DIR}/ThirdPartys/littefs
+    ${PROJECT_SOURCE_DIR}/ThirdPartys/littlefs
     ${PROJECT_SOURCE_DIR}/Threads/inc
     ${PROJECT_SOURCE_DIR}/Bsp/inc
 
