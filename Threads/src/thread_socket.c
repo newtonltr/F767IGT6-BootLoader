@@ -68,12 +68,27 @@ UINT nx_send(NX_TCP_SOCKET *socket, uint8_t *data, uint32_t len)
 
 }
 
+UINT nx_receive(NX_TCP_SOCKET *socket, uint8_t *data, ULONG *len)
+{
+    NX_PACKET *packet_ptr;
+    UINT status = 0;
+    
+    status = nx_tcp_socket_receive(socket, &packet_ptr, NX_WAIT_FOREVER);
+    if (status == NX_SUCCESS)
+    {
+         // 读取数据包内容
+        status = nx_packet_data_retrieve(packet_ptr, data, len);
+        // 释放数据包
+        nx_packet_release(packet_ptr);
+    }
+    return status;
+}
+
+char recv_msg_debug[128] = {0};
 // 线程入口函数
 void thread_socket_entry(ULONG thread_input)
 {
     UINT status;
-    NX_PACKET *receive_packet;
-    ULONG bytes_read;
     
     // 创建TCP服务器套接字
     status = nx_tcp_socket_create(&ip_0, &tcp_socket, "TCP Server Socket", 
@@ -109,19 +124,16 @@ void thread_socket_entry(ULONG thread_input)
 
         while (1)
         {
-            // 接收数据包
-            status = nx_tcp_socket_receive(&tcp_socket, &receive_packet, NX_WAIT_FOREVER);
-            if (status == NX_SUCCESS) {
-                // 读取数据包内容
-                // nx_packet_data_retrieve
-                // 释放数据包
-                nx_packet_release(receive_packet);
-            } else if (status == NX_NOT_CONNECTED) {
-                // 接受新连接
+            char recv_msg[128] = {0};
+            ULONG len = 0;
+            status = nx_receive(&tcp_socket, (uint8_t *)recv_msg, &len);
+            if (status == NX_NOT_CONNECTED) {
                 nx_tcp_server_socket_unaccept(&tcp_socket);
                 nx_tcp_server_socket_relisten(&ip_0, TCP_SERVER_PORT, &tcp_socket);
                 break;
             }
+            
+            memcpy(recv_msg_debug, recv_msg, strlen(recv_msg));
         }  
     }
 }
