@@ -41,6 +41,7 @@
 #include "tx_initialize.h"
 #include "thread_init.h"
 #include "flash_nor.h"
+#include "lfs_port.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -133,7 +134,7 @@ static void tx_sem_create(void)
 void  tx_application_define(void *first_unused_memory)
 {
   norflash_init();
-
+  file_sys_init();
 	tx_pool_create();
   tx_sem_create();
   
