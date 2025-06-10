@@ -59,10 +59,6 @@ file(GLOB_RECURSE SrcNetX
     "${PROJECT_SOURCE_DIR}/ThirdPartys/NetXDuo/addons/telnet/*.c"
     )
 
-file(GLOB_RECURSE Srclfs
-    "${PROJECT_SOURCE_DIR}/ThirdPartys/littlefs/*.c"
-    )
-
 file(GLOB_RECURSE SrcUser
     "${PROJECT_SOURCE_DIR}/Threads/src/*.c"
     "${PROJECT_SOURCE_DIR}/Bsp/src/*.c"
@@ -74,7 +70,6 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     ${SrcThreadX}
     ${SrcNetX}
     ${SrcUser}
-    ${Srclfs}
 )
 
 # Add include paths
@@ -90,7 +85,6 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/ThirdPartys/NetXDuo/crypto_libraries/ports/cortex-m7/gnu/inc
     ${PROJECT_SOURCE_DIR}/ThirdPartys/NetXDuo/crypto_libraries/inc
     ${PROJECT_SOURCE_DIR}/ThirdPartys/NetXDuo/user
-    ${PROJECT_SOURCE_DIR}/ThirdPartys/littlefs
     ${PROJECT_SOURCE_DIR}/Threads/inc
     ${PROJECT_SOURCE_DIR}/Bsp/inc
 

@@ -7,9 +7,8 @@
 #include "thread_init.h"
 #include "tx_api.h"
 #include "crc_tool.h"
-#include "lfs.h"
-#include "lfs_port.h"
 #include "emb_flash.h"
+#include "lite_file_sys.h"
 
 // thread socket parameters
 #define THREAD_SOCKET_STACK_SIZE    4096u
@@ -91,6 +90,8 @@ UINT nx_receive(NX_TCP_SOCKET *socket, uint8_t *data, ULONG *len)
     return status;
 }
 
+struct lite_file_sys_t lite_file = {0};
+
 uint8_t iap_process_flag = 0;
 uint8_t socket_recv_msg[2048] = {0};
 ULONG socket_recv_len = 0;
@@ -106,14 +107,6 @@ void thread_socket_entry(ULONG thread_input)
 {
     UINT status;
 
-    //在norflash中建立/打开 sys_upgrade.bin 文件，并截断，从头开始写入
-    if(lfs_file_open(&lfs_norflash_wq128, &sys_upgrade_file, "sys_upgrade.bin", LFS_O_CREAT | LFS_O_RDWR | LFS_O_TRUNC) < 0){
-        while (1) {
-            sleep_ms(100);
-        }
-    }
-
-    
     // 创建TCP服务器套接字
     status = nx_tcp_socket_create(&ip_0, &tcp_socket, "TCP Server Socket", 
                                  NX_IP_NORMAL, NX_FRAGMENT_OKAY, NX_IP_TIME_TO_LIVE, 
@@ -143,6 +136,7 @@ void thread_socket_entry(ULONG thread_input)
         }
 
         // 发送连接成功消息
+        lite_file_init(&lite_file, "sys_upgrade.bin", 0, 400*1024);
         nx_send(&tcp_socket, (uint8_t *)connected, strlen(connected));
 
         while (1)
@@ -166,21 +160,21 @@ void thread_socket_entry(ULONG thread_input)
                 nx_send(&tcp_socket, (uint8_t *)crc_error, strlen(crc_error));
                 continue;
             }
-            lfs_file_write(&lfs_norflash_wq128, &sys_upgrade_file, ftp->data, ftp->data_size);
+            lite_file_write(&lite_file, ftp->data, ftp->data_size);
             
             if (ftp->pack_index == ftp->total_packs) {
                 nx_send(&tcp_socket, (uint8_t *)start_program, strlen(start_program));
                 // 循环读取文件数据并写入到内部Flash
                 // 总大小
-                lfs_file_rewind(&lfs_norflash_wq128, &sys_upgrade_file);
-                lfs_soff_t file_size = lfs_file_size(&lfs_norflash_wq128, &sys_upgrade_file); 
+                lite_file_rewind(&lite_file);
+                int file_size = lite_file_size(&lite_file); 
                 //单次读取大小, 一次读取1k
                 uint8_t read_buf[1024] = {0};
-                lfs_soff_t read_size = 0;
+                int read_size = 0;
                 uint32_t target_addr = AppAddr;
                 // 总读取大小=文件大小时跳出
                 while (read_size < file_size) {
-                    lfs_soff_t once_read_size = lfs_file_read(&lfs_norflash_wq128, &sys_upgrade_file, read_buf, sizeof(read_buf));
+                    int once_read_size = lite_file_read(&lite_file, read_buf, sizeof(read_buf));
                     if (once_read_size > 0) {
                         // 计算需要写入的字数量（Flash按32位字写入，不足补齐）
                         uint32_t write_size = (once_read_size%4==0)?(once_read_size/4):(once_read_size/4+1);
@@ -190,8 +184,7 @@ void thread_socket_entry(ULONG thread_input)
                         nx_send(&tcp_socket, (uint8_t *)&read_size, sizeof(read_size));
                     }
                 }
-                lfs_file_rewind(&lfs_norflash_wq128, &sys_upgrade_file);
-                lfs_file_close(&lfs_norflash_wq128, &sys_upgrade_file);
+                lite_file_rewind(&lite_file);
                 nx_send(&tcp_socket, (uint8_t *)program_complete, strlen(program_complete));
                 HAL_Delay(500);
                 iap_process_flag = 1;
@@ -201,4 +194,5 @@ void thread_socket_entry(ULONG thread_input)
         }  
     }
 }
+
 

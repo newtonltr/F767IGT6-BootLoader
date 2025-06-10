@@ -41,7 +41,6 @@
 #include "tx_initialize.h"
 #include "thread_init.h"
 #include "flash_nor.h"
-#include "lfs_port.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -112,29 +111,22 @@ uint64_t thread_init_stack[THREAD_INIT_STACK_SIZE/8];
 /******************************tx kits define**************************************/
 
 // pool
-//little-fs byte pool, 16K Word
-#define LFS_POOL_WSIZE 	(1024*16)
-ULONG lfs_pool_area[LFS_POOL_WSIZE];
-TX_BYTE_POOL lfs_byte_pool;
+
 
 // sem
-TX_SEMAPHORE sem_socket_recv;
 
 static void tx_pool_create(void)
 {
-	tx_byte_pool_create(&lfs_byte_pool,"lfs_byte_pool",lfs_pool_area,sizeof(lfs_pool_area));
 
 }
 
 static void tx_sem_create(void)
 {
-	tx_semaphore_create(&sem_socket_recv, "sem_socket_recv", 0);
 }
 
 void  tx_application_define(void *first_unused_memory)
 {
   norflash_init();
-  file_sys_init();
 	tx_pool_create();
   tx_sem_create();
   
@@ -202,7 +194,7 @@ int main(void)
   MX_FMC_Init();
   MX_LPTIM1_Init();
   MX_CRC_Init();
-  MX_IWDG_Init();
+  // MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   tx_kernel_enter();
 

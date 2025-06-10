@@ -1,4 +1,5 @@
 #include "thread_init.h"
+#include "main.h"
 #include "nx_stm32_eth_driver.h"
 #include "eth.h"
 #include "thread_socket.h"
@@ -70,7 +71,7 @@ void thread_init(ULONG input)
 	
 	while(1)
 	{
-		
+		// flashnordebug();
 		sleep_ms(10);
 	}
 }
