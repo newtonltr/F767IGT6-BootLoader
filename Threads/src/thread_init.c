@@ -23,7 +23,7 @@ ULONG    arp_space_area[52*20 / sizeof(ULONG)] __attribute__((section(".NxPoolSe
 #define IP_ADDR0                        192
 #define IP_ADDR1                        168
 #define IP_ADDR2                        0
-#define IP_ADDR3                        233
+#define IP_ADDR3                        232
 ULONG  ip0_address = IP_ADDRESS(IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
 
 //netx thread infomation
@@ -67,7 +67,8 @@ void thread_init(ULONG input)
 
 	// tx thread create
 	thread_socket_create();
-
+	thread_iap_create();
+	
 	while(1)
 	{
 		

@@ -30,6 +30,7 @@
 #include "rng.h"
 #include "spi.h"
 #include "tim.h"
+#include "tx_api.h"
 #include "usart.h"
 #include "gpio.h"
 #include "fmc.h"
@@ -115,20 +116,27 @@ uint64_t thread_init_stack[THREAD_INIT_STACK_SIZE/8];
 ULONG lfs_pool_area[LFS_POOL_WSIZE];
 TX_BYTE_POOL lfs_byte_pool;
 
+// sem
+TX_SEMAPHORE sem_socket_recv;
+
 static void tx_pool_create(void)
 {
 	tx_byte_pool_create(&lfs_byte_pool,"lfs_byte_pool",lfs_pool_area,sizeof(lfs_pool_area));
 
 }
 
-
+static void tx_sem_create(void)
+{
+	tx_semaphore_create(&sem_socket_recv, "sem_socket_recv", 0);
+}
 
 void  tx_application_define(void *first_unused_memory)
 {
   norflash_init();
 
 	tx_pool_create();
-
+  tx_sem_create();
+  
   tx_thread_create(&thread_init_block, 
                   "init", 
                   thread_init, 
