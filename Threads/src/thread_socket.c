@@ -3,9 +3,13 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "main.h"
 #include "thread_init.h"
 #include "tx_api.h"
 #include "crc_tool.h"
+#include "lfs.h"
+#include "lfs_port.h"
+#include "emb_flash.h"
 
 // thread socket parameters
 #define THREAD_SOCKET_STACK_SIZE    4096u
@@ -16,7 +20,6 @@ void thread_socket_entry(ULONG thread_input);
 
 
 struct file_transfer_protocol_t file_transfer_protocol = {0};
-struct iap_process_t iap_process = {0};
 
 void thread_socket_create(void)
 {
@@ -88,17 +91,28 @@ UINT nx_receive(NX_TCP_SOCKET *socket, uint8_t *data, ULONG *len)
     return status;
 }
 
+uint8_t iap_process_flag = 0;
 uint8_t socket_recv_msg[2048] = {0};
 ULONG socket_recv_len = 0;
 const char connected[] = "client connected \r\n";
 const char crc_error[] = "crc error \r\n";
 const char recv_incomplete[] = "recv incomplete \r\n";
 const char recv_success[] = "recv success \r\n";
+const char start_program[] = "start program \r\n";
+const char program_complete[] = "program complete \r\n";
 
 // 线程入口函数
 void thread_socket_entry(ULONG thread_input)
 {
     UINT status;
+
+    //在norflash中建立/打开 sys_upgrade.bin 文件，并截断，从头开始写入
+    if(lfs_file_open(&lfs_norflash_wq128, &sys_upgrade_file, "sys_upgrade.bin", LFS_O_CREAT | LFS_O_RDWR | LFS_O_TRUNC) < 0){
+        while (1) {
+            sleep_ms(100);
+        }
+    }
+
     
     // 创建TCP服务器套接字
     status = nx_tcp_socket_create(&ip_0, &tcp_socket, "TCP Server Socket", 
@@ -152,41 +166,39 @@ void thread_socket_entry(ULONG thread_input)
                 nx_send(&tcp_socket, (uint8_t *)crc_error, strlen(crc_error));
                 continue;
             }
+            lfs_file_write(&lfs_norflash_wq128, &sys_upgrade_file, ftp->data, ftp->data_size);
+            
+            if (ftp->pack_index == ftp->total_packs) {
+                nx_send(&tcp_socket, (uint8_t *)start_program, strlen(start_program));
+                // 循环读取文件数据并写入到内部Flash
+                // 总大小
+                lfs_file_rewind(&lfs_norflash_wq128, &sys_upgrade_file);
+                lfs_soff_t file_size = lfs_file_size(&lfs_norflash_wq128, &sys_upgrade_file); 
+                //单次读取大小, 一次读取1k
+                uint8_t read_buf[1024] = {0};
+                lfs_soff_t read_size = 0;
+                uint32_t target_addr = AppAddr;
+                // 总读取大小=文件大小时跳出
+                while (read_size < file_size) {
+                    lfs_soff_t once_read_size = lfs_file_read(&lfs_norflash_wq128, &sys_upgrade_file, read_buf, sizeof(read_buf));
+                    if (once_read_size > 0) {
+                        // 计算需要写入的字数量（Flash按32位字写入，不足补齐）
+                        uint32_t write_size = (once_read_size%4==0)?(once_read_size/4):(once_read_size/4+1);
+                        FLASH_Write(target_addr, (uint32_t *)read_buf, write_size);
+                        target_addr += once_read_size;
+                        read_size += once_read_size;
+                        nx_send(&tcp_socket, (uint8_t *)&read_size, sizeof(read_size));
+                    }
+                }
+                lfs_file_rewind(&lfs_norflash_wq128, &sys_upgrade_file);
+                lfs_file_close(&lfs_norflash_wq128, &sys_upgrade_file);
+                nx_send(&tcp_socket, (uint8_t *)program_complete, strlen(program_complete));
+                HAL_Delay(500);
+                iap_process_flag = 1;
+                // JumpToApp();
+            }
             nx_send(&tcp_socket, (uint8_t *)recv_success, strlen(recv_success));  
         }  
     }
 }
 
-// thread iap parameters
-#define THREAD_IAP_STACK_SIZE    4096u
-#define THREAD_IAP_PRIO          25u
-TX_THREAD thread_iap_block;
-uint64_t thread_iap_stack[THREAD_IAP_STACK_SIZE/8];
-void thread_iap_entry(ULONG thread_input);
-
-void thread_iap_create(void)
-{
-    tx_thread_create(&thread_iap_block,
-        "iap",
-        thread_iap_entry,
-        0,
-        &thread_iap_stack[0],
-        THREAD_IAP_STACK_SIZE,
-        THREAD_IAP_PRIO,
-        THREAD_IAP_PRIO,
-        TX_NO_TIME_SLICE,
-        TX_AUTO_START);
-}
-
-void thread_iap_entry(ULONG input)
-{
-    // struct file_transfer_protocol_t *ftp = &file_transfer_protocol;
-    // struct iap_process_t *iap = &iap_process;
-
-
-    while(1)
-    {
-        // 
-        sleep_ms(10);
-    }
-}

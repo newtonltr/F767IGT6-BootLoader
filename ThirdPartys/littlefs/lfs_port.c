@@ -1,5 +1,5 @@
 #include "lfs_port.h"
-#include "norflash.h"
+#include "flash_nor.h"
 
 
 /*static uint8_t lfs_read_buffer[LFS_STATIC_READ_BUFF_SIZE];
@@ -79,10 +79,7 @@ const struct lfs_config cfg =
 
 
 lfs_t lfs_norflash_wq128;
-lfs_file_t sys_config_file;
-lfs_file_t sys_csv_file;
-lfs_file_t sys_log_file;
-lfs_file_t boot_info_file;
+lfs_file_t sys_upgrade_file;
 
 /*static uint32_t sys_config_file_buf[4096/4];
 static uint32_t sys_csv_file_buf[4096/4];

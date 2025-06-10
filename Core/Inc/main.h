@@ -136,6 +136,14 @@ void sleep_us(uint32_t us);
 extern TX_BYTE_POOL lfs_byte_pool;
 extern TX_SEMAPHORE sem_socket_recv;
 
+
+#ifdef __GNUC__
+    #define PACKED __attribute__((packed))
+#elif defined(__CC_ARM) || defined(__ARMCC_VERSION)
+    #define PACKED __packed
+#else
+    #define PACKED
+#endif
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

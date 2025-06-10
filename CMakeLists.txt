@@ -60,7 +60,7 @@ file(GLOB_RECURSE SrcNetX
     )
 
 file(GLOB_RECURSE Srclfs
-    "${PROJECT_SOURCE_DIR}/ThirdPartys/littefs/*.c"
+    "${PROJECT_SOURCE_DIR}/ThirdPartys/littlefs/*.c"
     )
 
 file(GLOB_RECURSE SrcUser

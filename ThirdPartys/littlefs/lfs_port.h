@@ -6,10 +6,7 @@
 
 //#define LFS_FRAM_SIZE	32768u
 
-extern lfs_file_t sys_config_file;
-extern lfs_file_t sys_csv_file;
-extern lfs_file_t sys_log_file;
-extern lfs_file_t boot_info_file;
+extern lfs_file_t sys_upgrade_file;
 
 extern lfs_t lfs_norflash_wq128;
 

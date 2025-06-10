@@ -67,7 +67,6 @@ void thread_init(ULONG input)
 
 	// tx thread create
 	thread_socket_create();
-	thread_iap_create();
 	
 	while(1)
 	{
