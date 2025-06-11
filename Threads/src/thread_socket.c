@@ -91,9 +91,10 @@ UINT nx_receive(NX_TCP_SOCKET *socket, uint8_t *data, ULONG *len)
 }
 
 struct lite_file_sys_t lite_sys_upgrade_file = {0};
-int litefs_write_status = 0;
+int litefs_write_size = 0;
 
-uint8_t iap_process_flag = 0;
+struct file_transfer_protocol_t file_tp = {0};
+uint32_t recv_cnt = 0;
 uint8_t socket_recv_msg[2048] = {0};
 ULONG socket_recv_len = 0;
 const char connected[] = "client connected \r\n";
@@ -161,9 +162,10 @@ void thread_socket_entry(ULONG thread_input)
                 nx_send(&tcp_socket, (uint8_t *)crc_error, strlen(crc_error));
                 continue;
             }
-            litefs_write_status = lite_file_write(&lite_sys_upgrade_file, ftp->data, ftp->data_size);
-            
-            if (ftp->pack_index == ftp->total_packs) {
+            memcpy(&file_tp, ftp, sizeof(struct file_transfer_protocol_t));
+            litefs_write_size += lite_file_write(&lite_sys_upgrade_file, ftp->data, ftp->data_size);
+            recv_cnt++;
+            if (ftp->pack_index == ftp->total_packs && litefs_write_size == ftp->total_bytes) {
                 nx_send(&tcp_socket, (uint8_t *)start_program, strlen(start_program));
                 // 循环读取文件数据并写入到内部Flash
                 // 总大小
@@ -188,8 +190,7 @@ void thread_socket_entry(ULONG thread_input)
                 sleep_ms(500);
                 lite_file_rewind(&lite_sys_upgrade_file);
                 nx_send(&tcp_socket, (uint8_t *)program_complete, strlen(program_complete));
-                iap_process_flag = 1;
-                // JumpToApp();
+                JumpToApp();
             } else {
                 nx_send(&tcp_socket, (uint8_t *)recv_success, strlen(recv_success));
             }
