@@ -187,9 +187,10 @@ void thread_socket_entry(ULONG thread_input)
                         // nx_send(&tcp_socket, (uint8_t *)&read_total_size, sizeof(read_total_size));
                     }
                 }
-                sleep_ms(500);
+                sleep_ms(100);
                 lite_file_rewind(&lite_sys_upgrade_file);
                 nx_send(&tcp_socket, (uint8_t *)program_complete, strlen(program_complete));
+                sleep_ms(100);
                 JumpToApp();
             } else {
                 nx_send(&tcp_socket, (uint8_t *)recv_success, strlen(recv_success));
