@@ -13,6 +13,7 @@
 !*.json
 !*.sct
 !*.md
+!*.py
 !CMakeLists.txt
 !.gitignore
 !gcc-arm-none-eabi.cmake
