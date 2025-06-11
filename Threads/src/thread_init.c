@@ -33,6 +33,10 @@ ULONG  ip0_address = IP_ADDRESS(IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
 #define  THREAD_NETX_IP0_STK_SIZE                     	1024*16u
 static   uint64_t  thread_netx_ip0_stack[THREAD_NETX_IP0_STK_SIZE/8];
 
+void led_ctrl(void)
+{
+	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11);
+}
 void thread_init(ULONG input)
 {
 	UINT nx_init_status = 0;
@@ -71,8 +75,8 @@ void thread_init(ULONG input)
 	
 	while(1)
 	{
-		// flashnordebug();
-		sleep_ms(10);
+		led_ctrl();
+		sleep_ms(50);
 	}
 }
 
