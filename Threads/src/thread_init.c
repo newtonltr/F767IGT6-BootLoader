@@ -4,6 +4,7 @@
 #include "eth.h"
 #include "thread_socket.h"
 #include "flash_nor.h"
+#include "tx_api.h"
 #include <stdint.h>
 
 
@@ -37,6 +38,10 @@ void led_ctrl(void)
 {
 	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11);
 }
+
+uint32_t jump_to_app_cnt = 0;
+uint8_t socket_connect_status = 0;
+
 void thread_init(ULONG input)
 {
 	UINT nx_init_status = 0;
@@ -76,6 +81,18 @@ void thread_init(ULONG input)
 	while(1)
 	{
 		led_ctrl();
+		if(tx_semaphore_get(&sem_socket_connected, TX_NO_WAIT) == TX_SUCCESS)
+		{
+			socket_connect_status = 1;
+		}
+		if (socket_connect_status == 0)
+		{
+			jump_to_app_cnt++;
+			if(jump_to_app_cnt > 160)
+			{
+				JumpToApp();
+			}
+		}
 		sleep_ms(50);
 	}
 }

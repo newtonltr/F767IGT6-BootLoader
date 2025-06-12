@@ -114,6 +114,7 @@ uint64_t thread_init_stack[THREAD_INIT_STACK_SIZE/8];
 
 
 // sem
+TX_SEMAPHORE  sem_socket_connected;
 
 static void tx_pool_create(void)
 {
@@ -122,6 +123,7 @@ static void tx_pool_create(void)
 
 static void tx_sem_create(void)
 {
+  tx_semaphore_create(&sem_socket_connected, "sem_socket_connected", 0);
 }
 
 void  tx_application_define(void *first_unused_memory)

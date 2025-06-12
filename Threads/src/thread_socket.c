@@ -138,6 +138,7 @@ void thread_socket_entry(ULONG thread_input)
         }
 
         // 发送连接成功消息
+        tx_semaphore_put(&sem_socket_connected);
         lite_file_init(&lite_sys_upgrade_file, "sys_upgrade.bin", 0, 400*1024);
         nx_send(&tcp_socket, (uint8_t *)connected, strlen(connected));
 

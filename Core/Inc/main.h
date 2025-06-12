@@ -133,6 +133,7 @@ void sleep_s(uint32_t s);
 void sleep_ms(uint32_t ms);
 void sleep_us(uint32_t us);
 
+extern TX_SEMAPHORE  sem_socket_connected;
 
 #ifdef __GNUC__
     #define PACKED __attribute__((packed))
