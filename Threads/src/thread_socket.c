@@ -17,9 +17,6 @@ TX_THREAD thread_socket_block;
 uint64_t thread_socket_stack[THREAD_SOCKET_STACK_SIZE/8];
 void thread_socket_entry(ULONG thread_input);
 
-
-struct file_transfer_protocol_t file_transfer_protocol = {0};
-
 void thread_socket_create(void)
 {
 	tx_thread_create(&thread_socket_block,
@@ -91,12 +88,7 @@ UINT nx_receive(NX_TCP_SOCKET *socket, uint8_t *data, ULONG *len)
 }
 
 struct lite_file_sys_t lite_sys_upgrade_file = {0};
-int litefs_write_size = 0;
 
-struct file_transfer_protocol_t file_tp = {0};
-uint32_t recv_cnt = 0;
-uint8_t socket_recv_msg[2048] = {0};
-ULONG socket_recv_len = 0;
 const char connected[] = "client connected \r\n";
 const char crc_error[] = "crc error \r\n";
 const char recv_incomplete[] = "recv incomplete \r\n";
@@ -108,6 +100,7 @@ const char program_complete[] = "program complete \r\n";
 void thread_socket_entry(ULONG thread_input)
 {
     UINT status;
+    int litefs_write_size = 0;
 
     // 创建TCP服务器套接字
     status = nx_tcp_socket_create(&ip_0, &tcp_socket, "TCP Server Socket", 
@@ -144,7 +137,8 @@ void thread_socket_entry(ULONG thread_input)
 
         while (1)
         {
-            memset(socket_recv_msg, 0, sizeof(socket_recv_msg));
+            uint8_t socket_recv_msg[2048] = {0};
+            ULONG socket_recv_len = 0;
             status = nx_receive(&tcp_socket, (uint8_t *)socket_recv_msg, &socket_recv_len);
             if (status == NX_NOT_CONNECTED)
             {
@@ -163,9 +157,9 @@ void thread_socket_entry(ULONG thread_input)
                 nx_send(&tcp_socket, (uint8_t *)crc_error, strlen(crc_error));
                 continue;
             }
-            memcpy(&file_tp, ftp, sizeof(struct file_transfer_protocol_t));
+
             litefs_write_size += lite_file_write(&lite_sys_upgrade_file, ftp->data, ftp->data_size);
-            recv_cnt++;
+
             if (ftp->pack_index == ftp->total_packs && litefs_write_size == ftp->total_bytes) {
                 nx_send(&tcp_socket, (uint8_t *)start_program, strlen(start_program));
                 // 循环读取文件数据并写入到内部Flash

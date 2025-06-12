@@ -34,13 +34,13 @@ ULONG  ip0_address = IP_ADDRESS(IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
 #define  THREAD_NETX_IP0_STK_SIZE                     	1024*16u
 static   uint64_t  thread_netx_ip0_stack[THREAD_NETX_IP0_STK_SIZE/8];
 
-void led_ctrl(void)
+static void led_ctrl(void)
 {
 	HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11);
 }
 
-uint32_t jump_to_app_cnt = 0;
-uint8_t socket_connect_status = 0;
+static uint32_t jump_to_app_cnt = 0;
+static uint8_t socket_connect_status = 0;
 
 void thread_init(ULONG input)
 {
