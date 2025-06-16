@@ -19,7 +19,7 @@ CONNECTION_TIMEOUT = 10     # 连接超时（秒）
 MAX_CONNECT_RETRIES = 3     # 最大连接重试次数
 MAX_SEND_RETRIES = 10       # 最大发送重试次数
 SERVER_PORT = 7000          # 默认服务器端口
-DEFAULT_SERVER_IP = "192.168.0.232"  # 默认服务器IP地址
+DEFAULT_SERVER_IP = "192.168.1.232"  # 默认服务器IP地址
 
 # 服务器响应消息
 RESPONSE_CONNECTED = b"client connected \r\n"

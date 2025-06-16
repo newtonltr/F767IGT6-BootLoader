@@ -24,7 +24,7 @@ ULONG    arp_space_area[52*20 / sizeof(ULONG)] __attribute__((section(".NxPoolSe
 //default buff
 #define IP_ADDR0                        192
 #define IP_ADDR1                        168
-#define IP_ADDR2                        0
+#define IP_ADDR2                        1
 #define IP_ADDR3                        232
 ULONG  ip0_address = IP_ADDRESS(IP_ADDR0, IP_ADDR1, IP_ADDR2, IP_ADDR3);
 
@@ -88,7 +88,7 @@ void thread_init(ULONG input)
 		if (socket_connect_status == 0)
 		{
 			jump_to_app_cnt++;
-			if(jump_to_app_cnt > 160)
+			if(jump_to_app_cnt > 200)
 			{
 				JumpToApp();
 			}
