@@ -6,6 +6,7 @@
 #include "flash_nor.h"
 #include "tx_api.h"
 #include <stdint.h>
+#include "bsp_gpio.h"
 
 
 
@@ -41,6 +42,7 @@ static void led_ctrl(void)
 
 static uint32_t jump_to_app_cnt = 0;
 static uint8_t socket_connect_status = 0;
+static uint8_t keep_bootloader_press_flag = 0;
 
 void thread_init(ULONG input)
 {
@@ -78,14 +80,21 @@ void thread_init(ULONG input)
 	// tx thread create
 	thread_socket_create();
 	
+	HAL_GPIO_WritePin(DO5_GPIO_Port, DO5_Pin, GPIO_PIN_SET);
+	wheel_front_filter.io_state_real = HAL_GPIO_ReadPin(WHEEL_FRONT_PORT, WHEEL_FRONT_PIN)? WHEEL_FRONT_RELEASE : WHEEL_FRONT_TRIGGER;	
+
 	while(1)
 	{
 		led_ctrl();
+		gpio_input_filter(&wheel_front_filter, WHEEL_FRONT_TRIGGER);
+		if (wheel_front_filter.trigger_long_press_flag) {
+			keep_bootloader_press_flag = 1;
+		}
 		if(tx_semaphore_get(&sem_socket_connected, TX_NO_WAIT) == TX_SUCCESS)
 		{
 			socket_connect_status = 1;
 		}
-		if (socket_connect_status == 0)
+		if (socket_connect_status != 1 && keep_bootloader_press_flag != 1)
 		{
 			jump_to_app_cnt++;
 			if(jump_to_app_cnt > 200)
